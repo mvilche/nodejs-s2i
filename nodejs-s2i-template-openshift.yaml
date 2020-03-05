@@ -1,0 +1,331 @@
+      ##comienzo Template
+    apiVersion: v1
+    kind: Template
+    metadata:
+      name: nodejs-openshift-s2i
+      labels:
+        template: nodejs-openshift-s2i
+        autor: "Martin_Fabrizzio_Vilche"
+      annotations:
+        openshift.io/display-name: "nodejs-openshift-s2i-mvilche"
+        iconClass: "icon-github"
+        description: >-
+          Nodejs Application S2i Images
+          Martin Fabrizzio Vilche.
+          https://github.com/mvilche.
+
+    objects:
+
+    - apiVersion: v1
+      data:
+        env: |-
+          APP_NAME=Lumen
+          APP_ENV=local
+          APP_KEY=
+          APP_DEBUG=true
+          APP_URL=http://miapp
+          APP_TIMEZONE=America/Montevideo
+          LOG_CHANNEL=stack
+          LOG_SLACK_WEBHOOK_URL=
+          DB_CONNECTION=
+          DB_HOST=
+          DB_PORT=
+          DB_DATABASE=
+          DB_USERNAME=user
+          DB_PASSWORD=pass
+          CACHE_DRIVER=file
+          QUEUE_CONNECTION=sync
+      kind: ConfigMap
+      metadata:
+        name: ${APP_NAME}      
+
+
+    - apiVersion: v1
+      kind: DeploymentConfig
+      metadata:
+        labels:
+          app: ${NODEJS_VERSION}-s2i
+        name: ${APP_NAME}
+      spec:
+        replicas: 1
+        revisionHistoryLimit: 10
+        selector:
+          app: ${NODEJS_VERSION}-s2i
+          deploymentconfig: ${APP_NAME}
+        strategy:
+          activeDeadlineSeconds: 21600
+          resources:
+            requests:          
+              cpu: 100m
+              memory: 256Mi          
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          rollingParams:
+            intervalSeconds: 1
+            maxSurge: 25%
+            maxUnavailable: 25%
+            timeoutSeconds: 600
+            updatePeriodSeconds: 1
+          type: Rolling
+        template:
+          metadata:
+            labels:
+              app: ${NODEJS_VERSION}-s2i
+              deploymentconfig: ${APP_NAME}
+          spec:
+            containers:
+              - env:
+                  - name: WAITFOR_HOST
+                    value:
+                  - name: WAITFOR_PORT
+                    value:
+                  - name: TIMEZONE
+                    value: America/Montevideo
+                  - name: MIGRATIONS
+                    value: '0'
+                image: "${APP_NAME}-${NODEJS_VERSION}:latest"
+                imagePullPolicy: Always
+                name: ${APP_NAME}
+                ports:
+                  - containerPort: 8080
+                    protocol: TCP
+                livenessProbe:
+                  failureThreshold: 5
+                  initialDelaySeconds: 10
+                  periodSeconds: 20
+                  successThreshold: 1
+                  httpGet:
+                    port: 8080
+                    path: /
+                  timeoutSeconds: 15
+                readinessProbe:
+                  failureThreshold: 5
+                  initialDelaySeconds: 10
+                  periodSeconds: 20
+                  successThreshold: 1
+                  httpGet:
+                    port: 8080
+                    path: /
+                  timeoutSeconds: 15
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 256Mi          
+                  limits:
+                    cpu: 500m
+                    memory: 512Mi
+                terminationMessagePath: /dev/termination-log
+                terminationMessagePolicy: File
+                volumeMounts:
+                  - mountPath: /opt/custom_config
+                    name: ${APP_NAME}-env          
+            dnsPolicy: ClusterFirst
+            restartPolicy: Always
+            schedulerName: default-scheduler
+            terminationGracePeriodSeconds: 10
+            volumes:
+              - configMap:
+                  name: ${APP_NAME}
+                  defaultMode: 420
+                  items:
+                    - key: env
+                      path: env                
+                name: ${APP_NAME}-env                             
+        test: false
+        triggers:
+          - type: ConfigChange
+          - imageChangeParams:
+              automatic: true
+              containerNames:
+                - ${APP_NAME}
+              from:
+                kind: ImageStreamTag
+                name: "${APP_NAME}-${NODEJS_VERSION}:latest"
+            type: ImageChange
+
+
+
+    - apiVersion: v1
+      kind: BuildConfig
+      metadata:
+        labels:
+          app: ${NODEJS_VERSION}-s2i
+        name: ${APP_NAME}-${NODEJS_VERSION}
+      spec:
+        completionDeadlineSeconds: 1800
+        failedBuildsHistoryLimit: 5
+        nodeSelector: null
+        output:
+          to:
+            kind: ImageStreamTag
+            name: ${APP_NAME}-${NODEJS_VERSION}:latest
+        postCommit: {}
+        resources:
+          requests:          
+            cpu: 100m
+            memory: 100Mi          
+          limits:
+            cpu: 1024m
+            memory: 2048Mi
+        runPolicy: Serial
+        source:
+          git:
+            uri: ${APP_REPO}
+          type: Git
+        strategy:
+          sourceStrategy:
+            env:
+              - name: SONARQUBE_ENABLED
+                value: ${SONARQUBE_ENABLED}
+              - name: SONARQUBE_HOST
+                value: ${SONARQUBE_HOST}
+              - name: SONARQUBE_PROJECTKEY
+                value: ${SONARQUBE_PROJECTKEY}
+              - name: SONARQUBE_PROJECTNAME
+                value: ${SONARQUBE_PROJECTNAME}
+              - name: NEXUS_COMPOSER_REPO
+                value: ${NEXUS_COMPOSER_REPO}
+            incremental: true
+            from:
+              kind: ImageStreamTag
+              name: ${NODEJS_VERSION}-s2i:latest
+          type: Source
+        successfulBuildsHistoryLimit: 5
+        triggers:
+          - type: ConfigChange
+          - imageChange:
+              from:
+                kind: "ImageStreamTag"
+                name: "${NODEJS_VERSION}-s2i:latest"
+
+    - apiVersion: v1
+      kind: ImageStream
+      metadata:
+        labels:
+          app: ${NODEJS_VERSION}-s2i
+        name: ${APP_NAME}-${NODEJS_VERSION}
+      spec: {}
+
+
+
+  #### fin builder
+
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        labels:
+          app: ${NODEJS_VERSION}-s2i
+        name: ${APP_NAME}
+      spec:
+        ports:
+          - name: http
+            port: 8080
+            protocol: TCP
+            targetPort: 8080
+        selector:
+          app: ${NODEJS_VERSION}-s2i
+          deploymentconfig: ${APP_NAME}
+        sessionAffinity: None
+        type: ClusterIP
+
+    - apiVersion: route.openshift.io/v1
+      kind: Route
+      metadata:
+        labels:
+          app: ${NODEJS_VERSION}-s2i
+        name: ${APP_NAME}
+      spec:
+        host:
+        port:
+          targetPort: http
+        to:
+          kind: Service
+          name: ${APP_NAME}
+          weight: 100
+        wildcardPolicy: None
+
+
+
+    - apiVersion: v1
+      kind: BuildConfig
+      metadata:
+        labels:
+          app: ${NODEJS_VERSION}-s2i
+          build: ${NODEJS_VERSION}-s2i
+        name: ${NODEJS_VERSION}-s2i
+      spec:
+        failedBuildsHistoryLimit: 5
+        nodeSelector: null
+        output:
+          to:
+            kind: ImageStreamTag
+            name: '${NODEJS_VERSION}-s2i:latest'
+        postCommit: {}
+        resources:
+          requests:          
+            cpu: 100m
+            memory: 100Mi          
+          limits:
+            cpu: 500m
+            memory: 1024Mi
+        runPolicy: Serial
+        source:
+          contextDir: ${NODEJS_VERSION}
+          git:
+            ref: master
+            uri: 'https://github.com/mvilche/nodejs-s2i-openshift.git'
+          type: Git
+        strategy:
+          dockerStrategy:
+            dockerfilePath: Dockerfile.centos8
+          type: Docker
+        successfulBuildsHistoryLimit: 5
+        triggers:
+          - type: ConfigChange
+
+
+    - apiVersion: v1
+      kind: ImageStream
+      metadata:
+        labels:
+          app: ${NODEJS_VERSION}-s2i
+        name: ${NODEJS_VERSION}-s2i
+      spec: {}
+
+
+  ########## FIN php
+
+
+    ################PARAMETROS
+    parameters:
+      - name: NODEJS_VERSION
+        displayName: Nodejs Version - See https://github.com/mvilche/nodejs-s2i-openshift.git
+        value: 'nodejs10'
+        required: true
+      - name: APP_NAME
+        displayName: Application Name
+        value: 'miapp'
+        required: true
+      - name: APP_REPO
+        displayName: Php application repository
+        value: 'https://github.com/contentful/the-example-app.nodejs.git'
+        required: true
+      - name: SONARQUBE_ENABLED
+        displayName: Enable sonarqube scanner. 1/0
+        value: ''
+      - name: SONARQUBE_HOST
+        displayName: Sonarqube host. http://sonar.domain:9090
+        value: ''
+      - name: SONARQUBE_PROJECTKEY
+        displayName: Sonarqube project key name
+        value: ''
+      - name: SONARQUBE_PROJECTNAME
+        displayName: Sonarqube project name
+        value: ''
+      - name: NEXUS_NPM_REPO
+        displayName: Url private npm repository
+        value: ''     
+
+    ###############
+
