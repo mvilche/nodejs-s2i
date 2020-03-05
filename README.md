@@ -1,4 +1,4 @@
-# PHP S2I Images CentOS 8
+# NodeJS S2I Images CentOS 8
 
 ![Docker Stars](https://img.shields.io/docker/stars/mvilche/nodejs-s2i.svg)
 ![Docker Pulls](https://img.shields.io/docker/pulls/mvilche/nodejs-s2i.svg)
