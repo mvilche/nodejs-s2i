@@ -184,8 +184,8 @@
                 value: ${SONARQUBE_PROJECTKEY}
               - name: SONARQUBE_PROJECTNAME
                 value: ${SONARQUBE_PROJECTNAME}
-              - name: NEXUS_COMPOSER_REPO
-                value: ${NEXUS_COMPOSER_REPO}
+              - name: NEXUS_NPM_REPO
+                value: ${NEXUS_NPM_REPO}
             incremental: true
             from:
               kind: ImageStreamTag
