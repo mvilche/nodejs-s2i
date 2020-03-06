@@ -60,6 +60,16 @@ rm -rf /tmp/src
 sonarqube
 #####
 
+
+if [[ ! -z "$NEXUS_NPM_REPO" ]]; then
+
+echo "----> NEXUS_NPM_REPO ENCONTRANDO."
+echo "----> SETEANDO COMO REGISTRO POR DEFECTO"
+
+npm config set registry $NEXUS_NPM_REPO
+
+fi
+
 if [[ -f "$DOCROOT/package.json" ]]; then
 echo "----> NPM DEPENDENCIAS ENCONTRADO!"
 echo "----> INSTALANDO..."
@@ -70,7 +80,7 @@ echo "----> FIN INSTALACION NPM..."
 fi
 
 if [[ -f "$DOCROOT/quasar.conf.js" ]]; then
-cd $DOCROOT && quasar build 
+cd $DOCROOT && quasar build
 fi
 
 #######################################
