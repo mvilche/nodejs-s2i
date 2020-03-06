@@ -11,6 +11,7 @@ set -e
 shopt -u dotglob
 DOCROOT="/opt/app"
 SHARE="/usr/lib/node_modules"
+SHARE_HTTPD="/var/www/html"
 
 
 
@@ -52,7 +53,9 @@ echo "----> FIN INSTALACION NPM..."
 fi
 
 if [[ -f "$DOCROOT/quasar.conf.js" ]]; then
-cd $DOCROOT && quasar build 
+cd $DOCROOT && quasar build
+rm -rf /var/www/html
+ln -sf $DOCROOT/dist/spa /var/www/html
 fi
 
 #######################################
@@ -69,5 +72,6 @@ else
 #######################################
 /usr/libexec/s2i/fix $SHARE
 /usr/libexec/s2i/fix $DOCROOT
+/usr/libexec/s2i/fix $SHARE_HTTPD
 echo "----> INSTALACION FINALIZADA"
 fi

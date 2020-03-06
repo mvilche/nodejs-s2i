@@ -20,19 +20,23 @@ yum install glibc-langpack-en glibc-langpack-es glibc-all-langpacks curl -y && y
 
 ENV NODEJS_VERSION=https://rpm.nodesource.com/setup_10.x
 
-RUN adduser -u 1001 -G 0 app && curl -sL $NODEJS_VERSION | bash - && yum install nodejs gcc-c++ make -y && \
+RUN adduser -u 1001 -G 0 app && curl -sL $NODEJS_VERSION | bash - && yum install httpd nodejs gcc-c++ make -y && \
 curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo && \
 yum install yarn -y && npm install -g @quasar/cli
 
+RUN sed -i -e "s/^Listen 80/Listen 8080/" /etc/httpd/conf/httpd.conf && \
+sed -ri -e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' /etc/httpd/conf/httpd.conf
+
 RUN yum autoremove -y &> /dev/null && yum clean all &> /dev/null && rm -rf /var/cache/yum &> /dev/null 
  
-
 COPY s2i/bin/ /usr/libexec/s2i
 
-RUN mkdir /opt/custom_config /opt/app && usermod -aG 0 app && touch /etc/localtime /etc/timezone && \
-chown -R 1001 /opt /usr/lib/node_modules /etc/timezone /etc/localtime /usr/libexec/s2i && \
-chgrp -R 0 /opt /usr/lib/node_modules /etc/timezone /etc/localtime /usr/libexec/s2i && \
-chmod g=u -R /opt /usr/lib/node_modules /etc/timezone /etc/localtime /usr/libexec/s2i && \
+COPY security.conf /etc/httpd/conf.d/security.conf
+
+RUN mkdir /opt/custom_config /opt/app && usermod -u 1001 apache && usermod -aG 0 apache && touch /etc/localtime /etc/timezone /var/log/httpd/ /run/httpd /var/www /etc/httpd /usr/share/httpd && \
+chown -R 1001 /opt /usr/lib/node_modules /etc/timezone /etc/localtime /usr/libexec/s2i /var/log/httpd/ /run/httpd /var/www /etc/httpd /usr/share/httpd && \
+chgrp -R 0 /opt /usr/lib/node_modules /etc/timezone /etc/localtime /usr/libexec/s2i /var/log/httpd/ /run/httpd /var/www /etc/httpd /usr/share/httpd && \
+chmod g=u -R /opt /usr/lib/node_modules /etc/timezone /etc/localtime /usr/libexec/s2i /var/log/httpd/ /run/httpd /var/www /etc/httpd /usr/share/httpd && \
 chmod +x /usr/libexec/s2i/*
 
 WORKDIR /opt/app
