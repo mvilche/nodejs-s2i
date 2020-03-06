@@ -41,7 +41,9 @@ fi
 
 if [ -f "$DOCROOT/quasar.conf.js" ]; then
 echo "----> QUASAR - INICIANDO.."
-exec quasar serve --port 8080 -H 0.0.0.0
+rm -rf /var/run/httpd/*
+exec httpd -DFOREGROUND
+#exec quasar serve --port 8080 -H 0.0.0.0
 fi
 
 export HOST=0.0.0.0
