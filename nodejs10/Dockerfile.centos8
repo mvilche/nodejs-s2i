@@ -20,7 +20,7 @@ yum install glibc-langpack-en glibc-langpack-es glibc-all-langpacks curl -y && y
 
 ENV NODEJS_VERSION=https://rpm.nodesource.com/setup_10.x
 
-RUN adduser -u 1001 -G 0 app && curl -sL $NODEJS_VERSION | bash - && yum install httpd nodejs gcc-c++ make -y && \
+RUN curl -sL $NODEJS_VERSION | bash - && yum install httpd nodejs gcc-c++ make -y && \
 curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo && \
 yum install yarn -y && npm install -g @quasar/cli
 
