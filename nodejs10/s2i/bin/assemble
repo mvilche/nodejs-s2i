@@ -67,7 +67,7 @@ echo "----> SE ENCONTRARON ARCHIVOS .env* EN LAS FUENTES - ELIMINANDO POR MOTIVO
 echo "----> --------------------------------------------------------------------------------------------------"
 echo "----> NUNCA INCLUYA ARCHIVOS DE CONFIGURACION, CERTIFICADOS, O DATASOURCES ESPECIFICOS PARA CADA AMBIENTE DENTRO DE LAS IMAGENES..."
 echo "----> --------------------------------------------------------------------------------------------------"
-find $DOCROOT -iname '.env*' -exec rm -rf {} \;
+#find $DOCROOT -iname '.env*' -exec rm -rf {} \;
 else
 #######################################
 /usr/libexec/s2i/fix $SHARE
