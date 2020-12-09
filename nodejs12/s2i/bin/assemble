@@ -46,6 +46,7 @@ if [[ -f "$DOCROOT/package.json" ]]; then
 echo "----> NPM DEPENDENCIAS ENCONTRADO!"
 echo "----> INSTALANDO..."
 cd $DOCROOT
+npm config set prefix /opt/app/.npm
 npm install --verbose
 $EXTRA_NPM_COMMAND
 echo "----> FIN INSTALACION NPM..."
