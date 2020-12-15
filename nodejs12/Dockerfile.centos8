@@ -20,9 +20,9 @@ yum install glibc-langpack-en glibc-langpack-es glibc-all-langpacks curl -y && y
 
 ENV NODEJS_VERSION=https://rpm.nodesource.com/setup_12.x
 
-RUN adduser -u 1001 -G 0 app && curl -sL $NODEJS_VERSION | bash - && yum install nodejs gcc-c++ make -y && \
+RUN adduser -m -d /opt/app -u 1001 -G 0 app && curl -sL $NODEJS_VERSION | bash - && yum install nodejs gcc-c++ make -y && \
 curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo && \
-yum install yarn -y && npm install -g @quasar/cli
+yum install yarn -y
 
 RUN yum autoremove -y &> /dev/null && yum clean all &> /dev/null && rm -rf /var/cache/yum &> /dev/null 
 
@@ -32,16 +32,13 @@ COPY s2i/bin/ /usr/libexec/s2i
 ENV HOME=/opt/app \
 PATH=$PATH:/opt/app/.npm/bin
 
-RUN mkdir /opt/custom_config /opt/app && usermod -aG 0 app && touch /etc/localtime /etc/timezone && \
+RUN mkdir -p /opt/custom_config && touch /etc/localtime /etc/timezone && \
 chown -R 1001 /opt /usr/lib/node_modules /etc/timezone /etc/localtime /usr/libexec/s2i && \
 chgrp -R 0 /opt /usr/lib/node_modules /etc/timezone /etc/localtime /usr/libexec/s2i && \
 chmod g=u -R /opt /usr/lib/node_modules /etc/timezone /etc/localtime /usr/libexec/s2i && \
 chmod +x /usr/libexec/s2i/*
 
-
 WORKDIR /opt/app
-
-
 
 USER 1001:0
 
