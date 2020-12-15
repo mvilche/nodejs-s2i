@@ -48,6 +48,7 @@ echo "----> INSTALANDO..."
 cd $DOCROOT
 npm config set prefix /opt/app/.npm
 npm install --verbose
+npm run build
 $EXTRA_NPM_COMMAND
 echo "----> FIN INSTALACION NPM..."
 fi
