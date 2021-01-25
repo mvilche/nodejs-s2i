@@ -33,6 +33,17 @@ fi
 
 DOCROOT=/opt/app
 
+if [ -f "/opt/config/env" ]; then
+
+echo "----> CUSTOM ENV ENCONTRADO - UTILIZANDO.."
+
+cat /opt/config/env > $DOCROOT/.env
+cat /opt/config/env > $DOCROOT/.env.local
+
+fi
+
+
+
 if [ ! -z "$NPM_COMMAND_START" ]; then
 echo "----> NPM_COMMAND_START - INICIANDO.."
 exec $NPM_COMMAND_START
