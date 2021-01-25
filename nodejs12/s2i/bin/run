@@ -45,7 +45,7 @@ if [ -f "/opt/config/env.local" ]; then
 
 echo "----> CUSTOM ENV ENCONTRADO - UTILIZANDO.."
 
-cat /opt/config/env > $DOCROOT/.env.local
+cat /opt/config/env.local > $DOCROOT/.env.local
 
 fi
 
