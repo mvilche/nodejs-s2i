@@ -38,10 +38,16 @@ if [ -f "/opt/config/env" ]; then
 echo "----> CUSTOM ENV ENCONTRADO - UTILIZANDO.."
 
 cat /opt/config/env > $DOCROOT/.env
-cat /opt/config/env > $DOCROOT/.env.local
 
 fi
 
+if [ -f "/opt/config/env.local" ]; then
+
+echo "----> CUSTOM ENV ENCONTRADO - UTILIZANDO.."
+
+cat /opt/config/env > $DOCROOT/.env.local
+
+fi
 
 
 if [ ! -z "$NPM_COMMAND_START" ]; then
