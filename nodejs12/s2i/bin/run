@@ -15,7 +15,7 @@ if [ -z "$TIMEZONE" ]; then
 	echo "···································································································"
 else
 	echo "···································································································"
-	echo "---->  TIMEZONE SETEADO ENCONTRADO: " $TIMEZONE
+	echo "---->  TIMEZONE FOUND: " $TIMEZONE
 	echo "···································································································"
 	cat /usr/share/zoneinfo/$TIMEZONE > /etc/localtime && \
 	echo $TIMEZONE > /etc/timezone
@@ -35,7 +35,7 @@ DOCROOT=/opt/app
 
 if [ -f "/opt/config/env" ]; then
 
-echo "----> CUSTOM ENV ENCONTRADO - UTILIZANDO.."
+echo "----> CUSTOM ENV FOUND - USING..."
 
 cat /opt/config/env > $DOCROOT/.env
 
@@ -50,19 +50,13 @@ cat /opt/config/env.local > $DOCROOT/.env.local
 fi
 
 
-if [ ! -z "$NPM_COMMAND_START" ]; then
-echo "----> NPM_COMMAND_START - INICIANDO.."
+if [ ! -z "$COMMAND_START" ]; then
+echo "----> COMMAND_START FOUND! - STARTING.."
 exec $NPM_COMMAND_START
-fi
-
-
-if [ -f "$DOCROOT/quasar.conf.js" ]; then
-echo "----> QUASAR - INICIANDO.."
-exec quasar serve --port 8080 -H 0.0.0.0
 fi
 
 export HOST=0.0.0.0
 export PORT=8080
-exec npm run start
+exec yarn start
 
 

@@ -20,13 +20,13 @@ fi
 
 
   if [ -d /tmp/artifacts/node_modules ]; then
-  echo "---> RESTAURANDO NODE MODULES DESDE CACHE..."
+  echo "---> RESTORING FROM CACHE..."
   cp -rf /tmp/artifacts/node_modules $DOCROOT/node_modules
   rm -rf /tmp/artifacts
 
 fi
 
-echo "---> INSTALANDO CODIGO FUENTE..."
+echo "---> INSTALLING SOURCE CODE..."
 cp -rf /tmp/src/.  $DOCROOT/
 rm -rf /tmp/src
 
@@ -34,8 +34,8 @@ rm -rf /tmp/src
 
 if [[ ! -z "$NEXUS_NPM_REPO" ]]; then
 
-echo "----> NEXUS_NPM_REPO ENCONTRANDO."
-echo "----> SETEANDO COMO REGISTRO POR DEFECTO"
+echo "----> NEXUS_NPM_REPO FOUND!."
+echo "----> SETTING NEXUS_NPM_REPO FOR BUILDS"
 
 npm config set registry $NEXUS_NPM_REPO
 
@@ -43,24 +43,22 @@ fi
 
 
 if [[ -f "$DOCROOT/package.json" ]]; then
-echo "----> NPM DEPENDENCIAS ENCONTRADO!"
-echo "----> INSTALANDO..."
+echo "----> package.json FOUND!"
+echo "----> INSTALLING..."
 cd $DOCROOT
-npm config set prefix /opt/app/.npm
-npm install --verbose
-npm run build
-$EXTRA_NPM_COMMAND
-echo "----> FIN INSTALACION NPM..."
+if [[ -z "$CUSTOM_BUILD_COMMAND" ]]; then
+yarn install --verbose
+yarn build
+else
+$CUSTOM_BUILD_COMMAND
 fi
-
-if [[ -f "$DOCROOT/quasar.conf.js" ]]; then
-cd $DOCROOT && quasar build 
+echo "----> FINISH INSTALL..."
 fi
 
 #######################################
-echo "----> COMPLETANDO TAREAS ADICIONALES..."
+echo "----> ADDITIONAL TASKS..."
 
 /usr/libexec/s2i/fix $SHARE
 /usr/libexec/s2i/fix $DOCROOT
 /usr/libexec/s2i/fix $DOCROOT/.*
-echo "----> INSTALACION FINALIZADA"
+echo "----> INSTALL FINISH OK!"
