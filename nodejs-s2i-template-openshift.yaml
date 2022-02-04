@@ -4,10 +4,10 @@
     metadata:
       name: nodejs-openshift-s2i
       labels:
-        template: nodejs-openshift-s2i
+        template: nodejs-s2i
         autor: "Martin_Fabrizzio_Vilche"
       annotations:
-        openshift.io/display-name: "nodejs-openshift-s2i-mvilche"
+        openshift.io/display-name: "Nodejs s2i template"
         iconClass: "icon-github"
         description: >-
           Nodejs Application S2i Images
@@ -44,13 +44,13 @@
       kind: DeploymentConfig
       metadata:
         labels:
-          app: ${NODEJS_VERSION}-s2i
+          app: nodejs${NODEJS_VERSION}-s2i
         name: ${APP_NAME}
       spec:
         replicas: 1
         revisionHistoryLimit: 10
         selector:
-          app: ${NODEJS_VERSION}-s2i
+          app: nodejs${NODEJS_VERSION}-s2i
           deploymentconfig: ${APP_NAME}
         strategy:
           activeDeadlineSeconds: 21600
@@ -71,7 +71,7 @@
         template:
           metadata:
             labels:
-              app: ${NODEJS_VERSION}-s2i
+              app: nodejs${NODEJS_VERSION}-s2i
               deploymentconfig: ${APP_NAME}
           spec:
             containers:
@@ -84,7 +84,7 @@
                     value: America/Montevideo
                   - name: MIGRATIONS
                     value: '0'
-                image: "${APP_NAME}-${NODEJS_VERSION}:latest"
+                image: "${APP_NAME}-nodejs${NODEJS_VERSION}:latest"
                 imagePullPolicy: Always
                 name: ${APP_NAME}
                 ports:
@@ -141,7 +141,7 @@
                 - ${APP_NAME}
               from:
                 kind: ImageStreamTag
-                name: "${APP_NAME}-${NODEJS_VERSION}:latest"
+                name: "${APP_NAME}-nodejs${NODEJS_VERSION}:latest"
             type: ImageChange
 
 
@@ -150,8 +150,8 @@
       kind: BuildConfig
       metadata:
         labels:
-          app: ${NODEJS_VERSION}-s2i
-        name: ${APP_NAME}-${NODEJS_VERSION}
+          app: nodejs${NODEJS_VERSION}-s2i
+        name: ${APP_NAME}-nodejs${NODEJS_VERSION}
       spec:
         completionDeadlineSeconds: 1800
         failedBuildsHistoryLimit: 5
@@ -159,7 +159,7 @@
         output:
           to:
             kind: ImageStreamTag
-            name: ${APP_NAME}-${NODEJS_VERSION}:latest
+            name: ${APP_NAME}-nodejs${NODEJS_VERSION}:latest
         postCommit: {}
         resources:
           requests:          
@@ -171,25 +171,18 @@
         runPolicy: Serial
         source:
           git:
+            ref: ${APP_BRANCH}
             uri: ${APP_REPO}
           type: Git
         strategy:
           sourceStrategy:
             env:
-              - name: SONARQUBE_ENABLED
-                value: ${SONARQUBE_ENABLED}
-              - name: SONARQUBE_HOST
-                value: ${SONARQUBE_HOST}
-              - name: SONARQUBE_PROJECTKEY
-                value: ${SONARQUBE_PROJECTKEY}
-              - name: SONARQUBE_PROJECTNAME
-                value: ${SONARQUBE_PROJECTNAME}
               - name: NEXUS_NPM_REPO
                 value: ${NEXUS_NPM_REPO}
             incremental: true
             from:
               kind: ImageStreamTag
-              name: ${NODEJS_VERSION}-s2i:latest
+              name: nodejs${NODEJS_VERSION}-s2i:latest
           type: Source
         successfulBuildsHistoryLimit: 5
         triggers:
@@ -197,14 +190,14 @@
           - imageChange:
               from:
                 kind: "ImageStreamTag"
-                name: "${NODEJS_VERSION}-s2i:latest"
+                name: "nodejs${NODEJS_VERSION}-s2i:latest"
 
     - apiVersion: v1
       kind: ImageStream
       metadata:
         labels:
-          app: ${NODEJS_VERSION}-s2i
-        name: ${APP_NAME}-${NODEJS_VERSION}
+          app: nodejs${NODEJS_VERSION}-s2i
+        name: ${APP_NAME}-nodejs${NODEJS_VERSION}
       spec: {}
 
 
@@ -215,7 +208,7 @@
       kind: Service
       metadata:
         labels:
-          app: ${NODEJS_VERSION}-s2i
+          app: nodejs${NODEJS_VERSION}-s2i
         name: ${APP_NAME}
       spec:
         ports:
@@ -224,7 +217,7 @@
             protocol: TCP
             targetPort: 8080
         selector:
-          app: ${NODEJS_VERSION}-s2i
+          app: nodejs${NODEJS_VERSION}-s2i
           deploymentconfig: ${APP_NAME}
         sessionAffinity: None
         type: ClusterIP
@@ -233,7 +226,7 @@
       kind: Route
       metadata:
         labels:
-          app: ${NODEJS_VERSION}-s2i
+          app: nodejs${NODEJS_VERSION}-s2i
         name: ${APP_NAME}
       spec:
         host:
@@ -251,34 +244,27 @@
       kind: BuildConfig
       metadata:
         labels:
-          app: ${NODEJS_VERSION}-s2i
-          build: ${NODEJS_VERSION}-s2i
-        name: ${NODEJS_VERSION}-s2i
+          app: nodejs${NODEJS_VERSION}-s2i
+          build: nodejs${NODEJS_VERSION}-s2i
+        name: nodejs${NODEJS_VERSION}-s2i
       spec:
         failedBuildsHistoryLimit: 5
         nodeSelector: null
         output:
           to:
             kind: ImageStreamTag
-            name: '${NODEJS_VERSION}-s2i:latest'
+            name: 'nodejs${NODEJS_VERSION}-s2i:latest'
         postCommit: {}
-        resources:
-          requests:          
-            cpu: 100m
-            memory: 100Mi          
-          limits:
-            cpu: 500m
-            memory: 1024Mi
         runPolicy: Serial
         source:
-          contextDir: ${NODEJS_VERSION}
+          contextDir: .
           git:
             ref: master
-            uri: 'https://github.com/mvilche/nodejs-s2i-openshift.git'
+            uri: 'https://github.com/mvilche/nodejs-s2i.git'
           type: Git
         strategy:
           dockerStrategy:
-            dockerfilePath: Dockerfile.centos8
+            dockerfilePath: ${NODEJS_VERSION}/Dockerfile.alpine
           type: Docker
         successfulBuildsHistoryLimit: 5
         triggers:
@@ -289,8 +275,8 @@
       kind: ImageStream
       metadata:
         labels:
-          app: ${NODEJS_VERSION}-s2i
-        name: ${NODEJS_VERSION}-s2i
+          app: nodejs${NODEJS_VERSION}-s2i
+        name: nodejs${NODEJS_VERSION}-s2i
       spec: {}
 
 
@@ -301,7 +287,7 @@
     parameters:
       - name: NODEJS_VERSION
         displayName: Nodejs Version - See https://github.com/mvilche/nodejs-s2i-openshift.git
-        value: 'nodejs10'
+        value: '16'
         required: true
       - name: APP_NAME
         displayName: Application Name
@@ -311,18 +297,10 @@
         displayName: Php application repository
         value: 'https://github.com/contentful/the-example-app.nodejs.git'
         required: true
-      - name: SONARQUBE_ENABLED
-        displayName: Enable sonarqube scanner. 1/0
-        value: ''
-      - name: SONARQUBE_HOST
-        displayName: Sonarqube host. http://sonar.domain:9090
-        value: ''
-      - name: SONARQUBE_PROJECTKEY
-        displayName: Sonarqube project key name
-        value: ''
-      - name: SONARQUBE_PROJECTNAME
-        displayName: Sonarqube project name
-        value: ''
+      - name: APP_BRANCH
+        displayName: Gitlab Branch
+        value: 'release'
+        required: true
       - name: NEXUS_NPM_REPO
         displayName: Url private npm repository
         value: ''     
