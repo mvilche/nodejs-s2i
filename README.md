@@ -1,4 +1,4 @@
-# NodeJS S2I Images CentOS 8
+# NodeJS S2I Images CentOS / RockyLinux / Alpine
 
 ![Docker Stars](https://img.shields.io/docker/stars/mvilche/nodejs-s2i.svg)
 ![Docker Pulls](https://img.shields.io/docker/pulls/mvilche/nodejs-s2i.svg)
@@ -26,23 +26,6 @@
 | WAITFOR_PORT | set port for WAITFOR_HOST |
 
 
-### Build Environments 
-
-
-| Environment | Details |
-| ------ | ------ |
-| SONARQUBE_ENABLED | Enable sonarqube scanner. 1/0  |
-| SONARQUBE_HOST | Sonarqube host. http://sonar.domain:9090  |
-| SONARQUBE_PROJECTNAME | Sonarqube project name  |
-| SONARQUBE_PROJECTKEY | Sonarqube project key  |
-| NEXUS_NPM_REPO | Url private composer repository  |
-
-
-
-
-
-
-### How use in Openshift
 
 ```console
 
