@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+# S2I assemble script for the 's2i-maven-java' image.
+# The 'assemble' script builds your application source so that it is ready to run.
+#
+# For more information refer to the documentation:
+#	https://github.com/openshift/source-to-image/blob/master/docs/builder_image.md
+#
+
+set -e
+shopt -u dotglob
+DOCROOT="/opt/app"
+SHARE="/usr/lib/node_modules"
+
+
+
+if [[ "$1" == "-h" ]]; then
+	exec /usr/libexec/s2i/usage
+fi
+
+
+  if [ -d /tmp/artifacts/node_modules ]; then
+  echo "---> RESTORING FROM CACHE..."
+  cp -rf /tmp/artifacts/node_modules $DOCROOT/node_modules
+  rm -rf /tmp/artifacts
+
+fi
+
+echo "---> INSTALLING SOURCE CODE..."
+cp -rf /tmp/src/.  $DOCROOT/
+rm -rf /tmp/src
+
+
+
+if [[ ! -z "$NEXUS_NPM_REPO" ]]; then
+
+echo "----> NEXUS_NPM_REPO FOUND!."
+echo "----> SETTING NEXUS_NPM_REPO FOR BUILDS"
+
+npm config set registry $NEXUS_NPM_REPO
+
+fi
+
+
+if [[ -f "$DOCROOT/package.json" ]]; then
+echo "----> package.json FOUND!"
+echo "----> INSTALLING..."
+cd $DOCROOT
+if [[ -z "$CUSTOM_BUILD_COMMAND" ]]; then
+yarn install --verbose
+yarn build
+else
+eval $CUSTOM_BUILD_COMMAND
+fi
+echo "----> FINISH INSTALL..."
+fi
+
+#######################################
+echo "----> ADDITIONAL TASKS..."
+
+/usr/libexec/s2i/fix $SHARE
+/usr/libexec/s2i/fix $DOCROOT
+/usr/libexec/s2i/fix $DOCROOT/.*
+echo "----> INSTALL FINISH OK!"
