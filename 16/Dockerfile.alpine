@@ -20,6 +20,7 @@ RUN apk --no-cache upgrade --available && apk add --update --no-cache nodejs fin
 COPY s2i/bin/ /usr/libexec/s2i
 
 RUN adduser -D -h /opt/app -u 1001 app && mkdir /opt/custom_config && usermod -aG 0 app && touch /etc/localtime /etc/timezone && \
+
 chown -R 1001 /opt /usr/lib/node_modules /etc/timezone /etc/localtime /usr/libexec/s2i && \
 chgrp -R 0 /opt /usr/lib/node_modules /etc/timezone /etc/localtime /usr/libexec/s2i && \
 chmod g=u -R /opt /usr/lib/node_modules /etc/timezone /etc/localtime /usr/libexec/s2i && \

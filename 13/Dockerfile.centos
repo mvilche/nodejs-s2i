@@ -1,6 +1,6 @@
-FROM rockylinux:8
+FROM centos:7
 
-ENV EPEL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
+ENV EPEL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
 LANG=es_ES.UTF-8 \
 LANGUAGE=es_ES.UTF-8 \
 LC_COLLATE=C \
@@ -17,7 +17,7 @@ LABEL autor="Martin Vilche <mfvilche@gmail.com>" \
 
 RUN yum update -y && yum install $EPEL yum-utils -y
 
-ENV NODEJS_VERSION=https://rpm.nodesource.com/setup_12.x
+ENV NODEJS_VERSION=https://rpm.nodesource.com/setup_13.x
 
 RUN adduser -u 1001 -G 0 app && curl -sL $NODEJS_VERSION | bash - && yum install nodejs gcc-c++ make -y && \
 curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo && \
