@@ -124,7 +124,7 @@ done
 fi
 
 if [ ! -z "$OVERRIDE_COMMAND_START" ]; then
-echo "----> COMMAND_START FOUND! - STARTING.."
+echo "----> OVERRIDE_COMMAND_START FOUND! - STARTING.."
 eval "$OVERRIDE_COMMAND_START"
 fi
 
