@@ -9,12 +9,13 @@
 # Features
 
 - Non-root
-- Openshift compatible
+- Okd Ready!
+- Kubernetes Ready!
 - S2i build images
-- Quasar
-- Yarn
+- yarn
+- npm
 - Sonarqube Scanner
-- Npm nexus private repository
+- Npm/yarn nexus private repository
 
 ### Deploy Environments 
 
@@ -24,6 +25,11 @@
 | TIMEZONE | Set Timezone (America/Montevideo, America/El_salvador) |
 | WAITFOR_HOST | set name host |
 | WAITFOR_PORT | set port for WAITFOR_HOST |
+| NGINX_ENABLE_PROMETHEUS | Enable prometheus metrics when USE_NGINX=1. Example: NGINX_ENABLE_PROMETHEUS=1 |
+| USE_NGINX | Use nginx for deploy. Example: USE_NGINX=1 |
+| OVERRIDE_COMMAND_START | Set custom command start. Default yarn start -H 0.0.0.0 --port 8080 |
+
+
 
 
 

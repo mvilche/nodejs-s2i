@@ -25,7 +25,7 @@ yum install yarn -y
 RUN yum autoremove -y &> /dev/null && yum clean all &> /dev/null && rm -rf /var/cache/yum &> /dev/null 
 
 
-COPY s2i/bin/ /usr/libexec/s2i
+COPY contrib/s2i/bin/ /usr/libexec/s2i
 
 RUN mkdir /opt/custom_config /opt/app && usermod -aG 0 app && touch /etc/localtime /etc/timezone && \
 chown -R 1001 /opt /usr/lib/node_modules /etc/timezone /etc/localtime /usr/libexec/s2i && \

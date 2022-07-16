@@ -19,7 +19,7 @@ RUN apk --no-cache upgrade --available && apk add --update --no-cache nodejs fin
     update-ms-fonts && \
     fc-cache -f
 
-COPY s2i/bin/ /usr/libexec/s2i
+COPY contrib/s2i/bin/ /usr/libexec/s2i
 
 RUN adduser -D -u 1001 app && mkdir /opt/custom_config /opt/app && usermod -aG 0 app && touch /etc/localtime /etc/timezone && \
 chown -R 1001 /opt /usr/lib/node_modules /etc/timezone /etc/localtime /usr/libexec/s2i && \

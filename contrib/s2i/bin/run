@@ -1,0 +1,135 @@
+#!/bin/bash -e
+#
+# S2I run script for the 'springboot-sti' image.
+# The run script executes the server that runs your application.
+#
+# For more information see the documentation:
+#	https://github.com/openshift/source-to-image/blob/master/docs/builder_image.md
+#
+
+
+if [ -z "$TIMEZONE" ]; then
+	echo "···································································································"
+	echo "---->  VARIABLE TIMEZONE NO SETEADA - INICIANDO CON VALORES POR DEFECTO"
+	echo "---->  POSIBLES VALORES: America/Montevideo | America/El_Salvador"
+	echo "···································································································"
+else
+	echo "···································································································"
+	echo "---->  TIMEZONE FOUND: " $TIMEZONE
+	echo "···································································································"
+	cat /usr/share/zoneinfo/$TIMEZONE > /etc/localtime && \
+	echo $TIMEZONE > /etc/timezone
+fi
+
+
+
+if [ ! -z "$WAITFOR_HOST" ] && [ ! -z "$WAITFOR_PORT" ] ; then
+	echo "···································································································"
+	echo "---->  WAITFOR  ACTIVADO.."
+    until nc -z -v -w5 $WAITFOR_HOST $WAITFOR_PORT &> /dev/null; do echo waiting for $WAITFOR_HOST; sleep 10; done;	
+	echo "···································································································"
+fi
+
+if [ ! -z "$RUN_USER_ID" ]; then
+	echo "···································································································"
+	echo "---->  RUN_USER_ID FOUND $RUN_USER_ID"
+
+	getuser=$(id -u)
+	if [ "$getuser" != 0 ]; then
+	echo "---->  !!!! ONLY WORK IF CONTAINER RUN WITH USER ROOT !!!!"
+	exit 1
+	fi	
+	echo "---->  CHANGE PERMISSIONS IN FILES!"
+	echo "···································································································"
+	usermod -u $RUN_USER_ID app 
+	chown -R $RUN_USER_ID:$RUN_USER_ID /opt/app
+
+	echo "----> FINISH RUN_USER_ID TASKS!"
+fi
+
+
+DOCROOT=/opt/app
+
+if [ -f "/opt/config/env" ]; then
+
+echo "----> CUSTOM ENV FOUND - USING..."
+
+cat /opt/config/env > $DOCROOT/.env
+
+fi
+
+if [ -f "/opt/config/env.local" ]; then
+
+echo "----> CUSTOM ENV ENCONTRADO - UTILIZANDO.."
+cat /opt/config/env.local > $DOCROOT/.env.local
+fi
+
+if [ "$USE_NGINX" == 1 ]; then
+echo "----> USE_NGINX FOUND! - STARTING NGINX.."
+
+
+if [[ -f "/etc/nginx/nginx.conf" ]]; then
+sed -i -e "s/worker_processes.*/worker_processes $NGINX_WORKER_PROCESSES;/" /etc/nginx/nginx.conf
+sed -i -e "s/worker_connections.*/worker_connections $NGINX_WORKER_CONNECTION;/" /etc/nginx/nginx.conf
+sed -i -e "s/client_max_body_size.*/client_max_body_size $NGINX_CLIENT_MAX_BODY_SIZE;/" /etc/nginx/nginx.conf
+
+echo "·······················NGINX CONFIG············································································"
+echo "---->  SET worker_connections TO $NGINX_WORKER_CONNECTION"
+echo "---->  SET worker_processes TO $NGINX_WORKER_PROCESSES"
+echo "---->  SET client_max_body_size TO $NGINX_CLIENT_MAX_BODY_SIZE"
+echo "················································································································"
+fi
+
+if [ -d "$DOCROOT/dist" ]; then
+ln -sf $DOCROOT/dist /var/www/html
+if [ -f "/opt/config/env.local" ]; then
+cat /opt/config/env.local > $DOCROOT/dist/.env.local
+fi
+else
+if [ -d "$DOCROOT/build" ]; then
+ln -sf $DOCROOT/build /var/www/html
+if [ -f "/opt/config/env.local" ]; then
+cat /opt/config/env.local > $DOCROOT/build/.env.local
+fi
+else
+echo "----> ERROR! - NOT FOUND build/ or dist/ FOLDER IN $DOCROOT"
+exit 1
+fi
+fi
+echo "STARTING NGINX SERVER ON 0.0.0.0:8080"
+nginx -g 'daemon off;' &>>/dev/stdout &
+psNginx=$!
+
+if [ "$NGINX_ENABLE_PROMETHEUS" == 1 ]; then
+echo "···································································································"
+echo "---->  NGINX_ENABLE_PROMETHEUS FOUND..."
+echo "---->  ACTIVATING PROMETHEUS METRICS  :9113/metrics"
+until nc -z -v -w5 127.0.0.1 8080 &> /dev/null; do sleep 5; done;	
+/etc/nginx/nginx-prometheus-exporter -nginx.scrape-uri=http://127.0.0.1:8080/status &>>/dev/stdout &
+psPrometheusNginx=$!
+fi
+
+cd /var/www/html
+
+while true
+do
+kill -0 $psNginx &>/dev/null
+if [ "$NGINX_ENABLE_PROMETHEUS" == 1 ]; then
+kill -0 $psPrometheusNginx &>/dev/null
+fi
+sleep 5
+done
+
+
+fi
+
+if [ ! -z "$OVERRIDE_COMMAND_START" ]; then
+echo "----> COMMAND_START FOUND! - STARTING.."
+eval "$OVERRIDE_COMMAND_START"
+fi
+
+export HOST=0.0.0.0
+export PORT=8080
+exec yarn start -H 0.0.0.0 --port 8080
+
+
