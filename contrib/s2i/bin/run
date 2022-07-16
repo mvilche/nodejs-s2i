@@ -64,6 +64,25 @@ echo "----> CUSTOM ENV ENCONTRADO - UTILIZANDO.."
 cat /opt/config/env.local > $DOCROOT/.env.local
 fi
 
+echo ""
+echo ""
+echo "-------------- YARN VERSION ---------------"
+yarn --version
+echo "-------------------------------------------"
+echo ""
+echo ""
+echo "-------------- NPM VERSION ---------------"
+npm --version
+echo "-------------------------------------------"
+echo ""
+echo ""
+echo "-------------- NODE VERSION ---------------"
+node --version
+echo "-------------------------------------------"
+echo ""
+echo ""
+
+
 if [ "$USE_NGINX" == 1 ]; then
 echo "----> USE_NGINX FOUND! - STARTING NGINX.."
 
