@@ -1,4 +1,4 @@
-# NodeJS S2I Images CentOS / RockyLinux / Alpine
+# NodeJS S2I Images Alpine / RockyLinux / CentOS
 
 ![Docker Stars](https://img.shields.io/docker/stars/mvilche/nodejs-s2i.svg)
 ![Docker Pulls](https://img.shields.io/docker/pulls/mvilche/nodejs-s2i.svg)
@@ -30,6 +30,13 @@
 | OVERRIDE_COMMAND_START | Set custom command start. Default yarn start -H 0.0.0.0 --port 8080 |
 
 
+### Build Environments 
+
+
+| Environment | Details |
+| ------ | ------ |
+| NEXUS_NPM_REPO | Use private npm/yarn repository   |
+| CUSTOM_BUILD_COMMAND | Execute custom build command. Default yarn install --verbose && yarn build |
 
 
 
